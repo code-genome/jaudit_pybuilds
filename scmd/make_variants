@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# This code is part of the Jaudit utilty.
+#
+# (C) Copyright IBM 2023.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+#
+
+dirname=`dirname $0`
+base=`realpath -L $dirname/..`
+top=`realpath -L $dirname/../..`
+cfdir="$base/cf"
+
+config="$cfdir/variants.cf"
+
+$top/bin/run submodules check_installed python data || exit 1
+
+egrep -v '^#' $config |
+egrep -v '^ *#' |
+while read table_name script_name analytics enable disable
+do
+   script_fn="$base/bin/$script_name"
+   if [ "x$table_name" = "x-" ]; then
+     $top/bin/run rebuild-jaudit -o "$script_fn"
+   else
+     if [ "x$enable" = 'x-' ]; then
+         eopt=""
+     else
+         eopt="-e $enable"
+     fi
+     if [ "x$disable" = 'x-' ]; then
+         dopt=""
+     else
+         dopt="-d $disable"
+     fi
+     table_fn="$base/tables/$table_name"
+     $top/bin/run create-tables -o "$table_fn" -a "$analytics" $eopt $dopt && {
+        $top/bin/run rebuild-jaudit -o "$script_fn" --use-table "$table_fn"
+     }
+  fi
+done
+

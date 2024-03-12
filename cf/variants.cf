@@ -1,0 +1,17 @@
+#
+# Jaudit with no analytic data included (must specify on command line;
+#  can't be used with Ansible.
+#
+- jaudit.py
+#
+# Jaudit with jar-name, jar-digest and jar-fingerprint with all apps
+#
+base_tables.cf jaudit_base.py jar-name,jar-digest,jar-fingerprint - -
+#
+# Jaudit with all analytics, but excludes elasticsearch from the apps
+#
+all_analytics.cf jaudit_all_analytics.py jar-name,jar-digest,jar-fingerprint,class-digest,class-fingerprint - elasticsearch
+#
+# Jaudit with everything
+#
+everything.cf jaudit_everything.py jar-name,jar-digest,jar-fingerprint,class-digest,class-fingerprint - -
